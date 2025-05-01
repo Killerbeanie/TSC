@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>The Sleep Cycle Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --primary: #e0e0e0;
+      --accent: #18bc9c;
+      --bg: #2f2f2f;
+      --card-bg: #000000;
+      --text: #e0e0e0;
+      --button-hover: #13a086;
+      --input-bg: #333333;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      flex-direction: column;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: var(--accent);
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+      animation: fadeInUp 0.7s ease-out;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 12px;
+      font-size: 1.2rem;
+    }
+
+    .input-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: var(--input-bg);
+      color: var(--text);
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      background-color: var(--accent);
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: var(--button-hover);
+    }
+
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #333;
+      border-left: 4px solid var(--accent);
+      border-radius: 8px;
+      font-size: 1rem;
+      display: none;
+      color: var(--text);
+      max-width: 100%;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    footer {
+      text-align: center;
+      font-size: 14px;
+      color: #777;
+      margin-top: 40px;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(30px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    .format-note {
+      font-size: 0.9rem;
+      color: #aaa;
+      margin-top: 5px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>The Sleep Cycle Calculator</h2>
+
+    <!-- First Step -->
+    <div class="card" id="sleepTimeCard">
+      <label for="sleepTime">When are you going to sleep? (24-hour format)</label>
+      <div class="input-wrapper">
+        <input type="time" id="sleepTime" step="1" placeholder="e.g., 23:00 for 11 PM">
+      </div>
+      <p class="format-note">Please enter the time in 24-hour format (e.g., 23:00 for 11 PM).</p>
+      <button onclick="nextStep()">Next</button>
+    </div>
+
+    <!-- Second Step -->
+    <div class="card" id="sleepDurationCard" style="display: none;">
+      <label for="sleepHours">How many hours of sleep do you want?</label>
+      <div class="input-wrapper">
+        <input type="number" step="0.1" id="sleepHours" placeholder="e.g. 7.5">
+      </div>
+      <button onclick="calculateWakeTimes()">Get Wake-Up Times</button>
+    </div>
+
+    <!-- Result Box -->
+    <div class="result" id="result"></div>
+
+    <footer>Made by you · Works offline · Refresh to reset</footer>
+  </div>
+
+  <script>
+    function nextStep() {
+      const sleepTimeInput = document.getElementById('sleepTime').value;
+      if (!sleepTimeInput) {
+        alert("Please enter a valid sleep time 🕒");
+        return;
+      }
+      document.getElementById('sleepTimeCard').style.display = 'none';
+      document.getElementById('sleepDurationCard').style.display = 'block';
+    }
+
+    function calculateWakeTimes() {
+      const sleepTimeInput = document.getElementById('sleepTime').value;
+      const sleepDuration = parseFloat(document.getElementById('sleepHours').value);
+      const resultBox = document.getElementById('result');
+
+      if (isNaN(sleepDuration)) {
+        resultBox.innerHTML = "<span>Enter a valid number of hours 💡</span>";
+        resultBox.style.display = 'block';
+        return;
+      }
+
+      const [hours, minutes] = sleepTimeInput.split(':').map(Number);
+      const now = new Date();
+      let sleepTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes);
+      sleepTime.setMinutes(sleepTime.getMinutes() + 15); // 15 min to fall asleep
+
+      let html = "<strong>Suggested Wake-Up Times:</strong><br>";
+      for (let i = 1; i <= 6; i++) {
+        let wake = new Date(sleepTime.getTime() + (sleepDuration + i * 1.5) * 60 * 60 * 1000);
+        html += `<span>${wake.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span><br>`;
+      }
+
+      resultBox.innerHTML = html;
+      resultBox.style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
